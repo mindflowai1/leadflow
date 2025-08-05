@@ -58,7 +58,7 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
   // Filtros
   const [searchTerm, setSearchTerm] = useState("")
   const [cityFilter, setCityFilter] = useState("")
-  const [ratingFilter, setRatingFilter] = useState("")
+     const [ratingFilter, setRatingFilter] = useState("all")
   const [websiteFilter, setWebsiteFilter] = useState("all")
   const [leadsPerPage, setLeadsPerPage] = useState("10")
   const [currentPage, setCurrentPage] = useState(1)
@@ -84,8 +84,8 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
     const matchesCity = cityFilter === "" || 
       lead.address?.toLowerCase().includes(cityFilter.toLowerCase())
     
-    const matchesRating = ratingFilter === "" || 
-      (lead.rating && lead.rating >= parseFloat(ratingFilter))
+         const matchesRating = ratingFilter === "all" || 
+       (lead.rating && lead.rating >= parseFloat(ratingFilter))
     
     const matchesWebsite = websiteFilter === "all" || 
       (websiteFilter === "with" && lead.website) ||
@@ -458,12 +458,12 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                       <SelectTrigger className="h-8 text-sm">
                         <SelectValue placeholder="Todas" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Todas</SelectItem>
-                        <SelectItem value="4">4+ estrelas</SelectItem>
-                        <SelectItem value="3">3+ estrelas</SelectItem>
-                        <SelectItem value="2">2+ estrelas</SelectItem>
-                      </SelectContent>
+                                             <SelectContent>
+                         <SelectItem value="all">Todas</SelectItem>
+                         <SelectItem value="4">4+ estrelas</SelectItem>
+                         <SelectItem value="3">3+ estrelas</SelectItem>
+                         <SelectItem value="2">2+ estrelas</SelectItem>
+                       </SelectContent>
                     </Select>
                   </div>
                   
