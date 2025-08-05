@@ -11,7 +11,9 @@ export const LogoImage: React.FC<LogoImageProps> = ({ className = '', alt = 'Lea
       src="/lflogo1.png"
       alt={alt}
       className={className}
+      onLoad={() => console.log('✅ Logo carregada com sucesso')}
       onError={(e) => {
+        console.error('❌ Erro ao carregar logo:', e)
         // Fallback se a imagem não carregar
         const target = e.target as HTMLImageElement
         target.style.display = 'none'
