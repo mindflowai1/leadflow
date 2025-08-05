@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader, Send, MessageSquare, Plus } from 'lucide-react'
+import { Loader, Send, Plus } from 'lucide-react'
 import { getCurrentUser } from '../lib/supabaseClient'
 import { ListManager } from '../components/ListManager'
 import type { LeadList } from '../types'

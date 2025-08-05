@@ -5,11 +5,10 @@ import { motion } from 'framer-motion'
 import { toast } from '../hooks/use-toast'
 import { getCurrentUser } from '../lib/supabaseClient'
 import { LeadService } from '../lib/leadService'
-import { Card } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
-import type { LeadList, BulkCampaign, EvolutionAPIConfig } from '../types'
+import type { LeadList, EvolutionAPIConfig } from '../types'
 
 export default function DisparadorMassa() {
   const navigate = useNavigate()
