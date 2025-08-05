@@ -18,7 +18,7 @@ export default function DisparadorMassa() {
   const [selectedLists, setSelectedLists] = useState<string[]>([])
   const [message, setMessage] = useState('')
   const [campaignName, setCampaignName] = useState('')
-  const [whatsappConfig, setWhatsappConfig] = useState<EvolutionAPIConfig | null>(null)
+  const [whatsappConfig] = useState<EvolutionAPIConfig | null>(null)
   const [activeTab, setActiveTab] = useState<'campaign' | 'config'>('campaign')
 
   useEffect(() => {
