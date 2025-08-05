@@ -1,5 +1,5 @@
 import React from 'react'
-import logoImage from '/lflogo1.png'
+import logoImage from '../assets/lflogo1.png'
 
 interface LogoImageProps {
   className?: string
