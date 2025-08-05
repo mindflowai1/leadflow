@@ -170,12 +170,19 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
     }
   }
 
-  const toggleLeadSelection = (index: number) => {
+  const toggleLeadSelection = (leadIndex: number) => {
     setGeneratedLeads(prev => 
       prev.map((lead, i) => 
-        i === index ? { ...lead, selected: !lead.selected } : lead
+        i === leadIndex ? { ...lead, selected: !lead.selected } : lead
       )
     )
+  }
+
+  const toggleLeadSelectionByFilteredIndex = (filteredIndex: number) => {
+    const actualIndex = startIndex + filteredIndex
+    if (actualIndex < generatedLeads.length) {
+      toggleLeadSelection(actualIndex)
+    }
   }
 
   const toggleSelectAll = () => {
@@ -219,7 +226,7 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
 
     setIsSaving(true)
 
-        try {
+    try {
       if (saveMode === 'new') {
         await LeadService.saveLeadList(newListName, selectedLeads)
       } else {
@@ -515,7 +522,7 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                           ? 'border-blue-500 bg-blue-50' 
                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
-                      onClick={() => toggleLeadSelection(startIndex + index)}
+                                             onClick={() => toggleLeadSelectionByFilteredIndex(index)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -523,7 +530,7 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                             <input
                               type="checkbox"
                               checked={lead.selected}
-                              onChange={() => toggleLeadSelection(startIndex + index)}
+                                                             onChange={() => toggleLeadSelectionByFilteredIndex(index)}
                               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
                             <h3 className="font-semibold text-gray-900">{lead.name}</h3>
