@@ -448,65 +448,66 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                   
                   <div>
                     <Label className="text-xs font-medium text-gray-700">Avaliação mínima</Label>
-                    <Select 
-                      value={ratingFilter} 
-                      onValueChange={(value) => {
-                        setRatingFilter(value)
-                        resetPagination()
-                      }}
-                    >
-                      <SelectTrigger className="h-8 text-sm">
-                        <SelectValue placeholder="Todas" />
-                      </SelectTrigger>
-                                             <SelectContent>
+                                         <Select 
+                       value={ratingFilter} 
+                       onValueChange={(value) => {
+                         setRatingFilter(value)
+                         resetPagination()
+                       }}
+                     >
+                       <SelectTrigger className="h-8 text-sm">
+                         <SelectValue placeholder="Todas" />
+                       </SelectTrigger>
+                       <SelectContent className="bg-white border border-gray-200 shadow-lg">
                          <SelectItem value="all">Todas</SelectItem>
                          <SelectItem value="4">4+ estrelas</SelectItem>
                          <SelectItem value="3">3+ estrelas</SelectItem>
                          <SelectItem value="2">2+ estrelas</SelectItem>
                        </SelectContent>
-                    </Select>
+                     </Select>
                   </div>
                   
                   <div>
                     <Label className="text-xs font-medium text-gray-700">Website</Label>
-                    <Select 
-                      value={websiteFilter} 
-                      onValueChange={(value) => {
-                        setWebsiteFilter(value)
-                        resetPagination()
-                      }}
-                    >
-                      <SelectTrigger className="h-8 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="with">Com website</SelectItem>
-                        <SelectItem value="without">Sem website</SelectItem>
-                      </SelectContent>
-                    </Select>
+                                         <Select 
+                       value={websiteFilter} 
+                       onValueChange={(value) => {
+                         setWebsiteFilter(value)
+                         resetPagination()
+                       }}
+                     >
+                       <SelectTrigger className="h-8 text-sm">
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                         <SelectItem value="all">Todos</SelectItem>
+                         <SelectItem value="with">Com website</SelectItem>
+                         <SelectItem value="without">Sem website</SelectItem>
+                       </SelectContent>
+                     </Select>
                   </div>
                   
-                  <div>
-                    <Label className="text-xs font-medium text-gray-700">Por página</Label>
-                    <Select 
-                      value={leadsPerPage} 
-                      onValueChange={(value) => {
-                        setLeadsPerPage(value)
-                        setCurrentPage(1)
-                      }}
-                    >
-                      <SelectTrigger className="h-8 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5">5 leads</SelectItem>
-                        <SelectItem value="10">10 leads</SelectItem>
-                        <SelectItem value="20">20 leads</SelectItem>
-                        <SelectItem value="50">50 leads</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                                     <div>
+                     <Label className="text-xs font-medium text-gray-700">Leads por Página</Label>
+                     <Select 
+                       value={leadsPerPage} 
+                       onValueChange={(value) => {
+                         setLeadsPerPage(value)
+                         setCurrentPage(1)
+                       }}
+                     >
+                       <SelectTrigger className="h-8 text-sm">
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                         <SelectItem value="10">10 leads</SelectItem>
+                         <SelectItem value="20">20 leads</SelectItem>
+                         <SelectItem value="30">30 leads</SelectItem>
+                         <SelectItem value="40">40 leads</SelectItem>
+                         <SelectItem value="50">50 leads</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
                 </div>
               </CardHeader>
               <CardContent>
