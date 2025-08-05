@@ -512,17 +512,18 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
               <CardContent>
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    {paginatedLeads.map((lead, index) => (
-                     <motion.div
-                       key={index}
-                       initial={{ opacity: 0, y: 10 }}
-                       animate={{ opacity: 1, y: 0 }}
-                       transition={{ delay: index * 0.05 }}
-                       className={`p-4 border rounded-lg transition-all hover:shadow-md ${
-                         lead.selected 
-                           ? 'border-blue-500 bg-blue-50 shadow-md' 
-                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                       }`}
-                     >
+                                           <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`p-4 border rounded-lg transition-all hover:shadow-md cursor-pointer ${
+                          lead.selected 
+                            ? 'border-blue-500 bg-blue-50 shadow-md' 
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                        onClick={() => toggleLeadSelectionByFilteredIndex(index)}
+                      >
                        <div className="space-y-3">
                          {/* Header com checkbox e nome */}
                          <div className="flex items-start justify-between">
