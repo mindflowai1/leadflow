@@ -239,11 +239,20 @@ CREATE POLICY "Users can delete own lists" ON lead_lists
 2. **Configure o build command**: `npm run build`
 3. **Configure o publish directory**: `dist`
 
+### **GitHub Pages**
+
+⚠️ **IMPORTANTE**: O LeadFlow **NÃO funciona** no GitHub Pages porque é uma aplicação React dinâmica que requer:
+- Servidor para roteamento SPA
+- Variáveis de ambiente (Supabase, N8N)
+- Funcionalidades de backend
+
+**Use Vercel ou Netlify** para deploy.
+
 ### **Outros**
 
 - **Firebase Hosting**
 - **AWS S3 + CloudFront**
-- **GitHub Pages**
+- **Railway** (plataforma completa)
 
 ## 🤝 Contribuição
 
