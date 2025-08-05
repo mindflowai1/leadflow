@@ -39,7 +39,12 @@ Install Command: npm install
 
 ### **3. Configurar Environment Variables**
 
-Adicione estas variáveis no Vercel:
+⚠️ **IMPORTANTE**: As variáveis de ambiente devem ser configuradas no painel do Vercel, não no arquivo `vercel.json`.
+
+**No painel do Vercel:**
+
+1. **Vá para**: Project Settings > Environment Variables
+2. **Adicione cada variável**:
 
 ```env
 # Supabase
@@ -53,6 +58,9 @@ VITE_N8N_WEBHOOK_URL=https://n8n-n8n-start.kof6cn.easypanel.host/webhook-test/..
 VITE_APP_ENV=production
 VITE_DEBUG_MODE=false
 ```
+
+3. **Selecione os ambientes**: Production, Preview, Development
+4. **Clique em**: "Save"
 
 ### **4. Deploy**
 
