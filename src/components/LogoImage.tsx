@@ -1,4 +1,5 @@
 import React from 'react'
+import logoImage from '/lflogo1.png'
 
 interface LogoImageProps {
   className?: string
@@ -8,7 +9,7 @@ interface LogoImageProps {
 export const LogoImage: React.FC<LogoImageProps> = ({ className = '', alt = 'LeadFlow' }) => {
   return (
     <img 
-      src="/lflogo1.png"
+      src={logoImage}
       alt={alt}
       className={className}
       onLoad={() => console.log('✅ Logo carregada com sucesso')}
