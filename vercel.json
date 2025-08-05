@@ -25,11 +25,6 @@
     "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
     "VITE_N8N_WEBHOOK_URL": "@vite_n8n_webhook_url"
   },
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "headers": [
     {
       "source": "/assets/(.*)",
