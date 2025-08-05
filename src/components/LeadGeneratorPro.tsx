@@ -510,66 +510,71 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {paginatedLeads.map((lead, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                        lead.selected 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                                             onClick={() => toggleLeadSelectionByFilteredIndex(index)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <input
-                              type="checkbox"
-                              checked={lead.selected}
-                                                             onChange={() => toggleLeadSelectionByFilteredIndex(index)}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            <h3 className="font-semibold text-gray-900">{lead.name}</h3>
-                            {renderStars(lead.rating)}
-                          </div>
-                          
-                          <div className="text-sm text-gray-600 space-y-1">
-                            {lead.address && (
-                              <div className="flex items-center space-x-1">
-                                <MapPin className="w-3 h-3 text-gray-400" />
-                                <span>{lead.address}</span>
-                              </div>
-                            )}
-                            {lead.phone && (
-                              <div className="flex items-center space-x-1">
-                                <Phone className="w-3 h-3 text-gray-400" />
-                                <span>{lead.phone}</span>
-                              </div>
-                            )}
-                            {lead.website && (
-                              <div className="flex items-center space-x-1 text-blue-600">
-                                <Globe className="w-3 h-3" />
-                                <span className="text-xs">{lead.website}</span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {lead.business_type && (
-                            <div className="mt-2">
-                              <span className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
-                                {lead.business_type}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   {paginatedLeads.map((lead, index) => (
+                     <motion.div
+                       key={index}
+                       initial={{ opacity: 0, y: 10 }}
+                       animate={{ opacity: 1, y: 0 }}
+                       transition={{ delay: index * 0.05 }}
+                       className={`p-4 border rounded-lg transition-all hover:shadow-md ${
+                         lead.selected 
+                           ? 'border-blue-500 bg-blue-50 shadow-md' 
+                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                       }`}
+                     >
+                       <div className="space-y-3">
+                         {/* Header com checkbox e nome */}
+                         <div className="flex items-start justify-between">
+                           <div className="flex items-center space-x-2 flex-1 min-w-0">
+                             <input
+                               type="checkbox"
+                               checked={lead.selected}
+                               onChange={() => toggleLeadSelectionByFilteredIndex(index)}
+                               onClick={(e) => e.stopPropagation()}
+                               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+                             />
+                             <h3 className="font-semibold text-gray-900 text-sm truncate">{lead.name}</h3>
+                           </div>
+                           {renderStars(lead.rating)}
+                         </div>
+                         
+                         {/* Informações do lead */}
+                         <div className="space-y-2">
+                           {lead.address && (
+                             <div className="flex items-start space-x-2 text-xs text-gray-600">
+                               <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0 mt-0.5" />
+                               <span className="line-clamp-2">{lead.address}</span>
+                             </div>
+                           )}
+                           
+                           {lead.phone && (
+                             <div className="flex items-center space-x-2 text-xs text-gray-600">
+                               <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                               <span>{lead.phone}</span>
+                             </div>
+                           )}
+                           
+                           {lead.website && (
+                             <div className="flex items-center space-x-2 text-xs">
+                               <Globe className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                               <span className="text-blue-600 truncate">{lead.website}</span>
+                             </div>
+                           )}
+                         </div>
+                         
+                         {/* Tipo de negócio */}
+                         {lead.business_type && (
+                           <div className="pt-1">
+                             <span className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
+                               {lead.business_type}
+                             </span>
+                           </div>
+                         )}
+                       </div>
+                     </motion.div>
+                   ))}
+                 </div>
 
                 {/* Paginação */}
                 {totalPages > 1 && (
