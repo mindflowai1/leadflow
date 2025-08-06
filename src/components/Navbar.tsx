@@ -31,7 +31,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <LogoImage className="h-12 w-auto" />
+              <LogoImage className="h-8 w-auto" />
             </Link>
           </div>
 
