@@ -81,8 +81,11 @@ export default function LoginPage() {
       if (error) {
         setMessage({ type: 'error', text: error.message })
       } else if (authData.user) {
-        setMessage({ type: 'success', text: 'Login realizado com sucesso!' })
-        // O redirecionamento será feito pelo listener de sessão
+        setMessage({ type: 'success', text: 'Login realizado com sucesso! Redirecionando...' })
+        // Aguardar um pouco para o listener processar
+        setTimeout(() => {
+          navigate('/dashboard')
+        }, 1000)
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Erro interno. Tente novamente.' })

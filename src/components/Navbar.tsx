@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { User, LogOut, Menu, X } from 'lucide-react'
-import { getCurrentUser, signOut } from '../lib/supabaseClient'
+import { getCurrentUser, signOut, supabase } from '../lib/supabaseClient'
 import LogoImage from './LogoImage'
 
 export default function Navbar() {
@@ -10,12 +10,30 @@ export default function Navbar() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Verificar usuário logado
+    // Verificar usuário logado inicialmente
     const checkUser = async () => {
       const currentUser = await getCurrentUser()
       setUser(currentUser)
     }
     checkUser()
+
+    // Configurar listener para mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔄 Auth state changed:', event, session?.user?.email)
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(session.user)
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          setUser(session.user)
+        }
+      }
+    )
+
+    // Cleanup do listener
+    return () => subscription.unsubscribe()
   }, [])
 
   const handleLogout = async () => {
