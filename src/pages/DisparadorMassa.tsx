@@ -32,14 +32,21 @@ export default function DisparadorMassa() {
         return
       }
       setUser(currentUser)
-      await loadData()
       setLoading(false)
     }
     checkAuth()
   }, [navigate])
 
+  // Carregar dados quando o usuário estiver disponível
+  useEffect(() => {
+    if (user && !loading) {
+      loadData()
+    }
+  }, [user, loading])
+
   const loadData = async () => {
     try {
+      console.log('🚀 Iniciando loadData para usuário:', user?.id)
       const userLists = await LeadService.getUserLeadLists()
       setLists(userLists)
       
