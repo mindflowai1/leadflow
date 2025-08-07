@@ -45,8 +45,10 @@ export default function DisparadorMassa() {
       
       // Carregar instância WhatsApp do usuário
       if (user) {
+        console.log('🔍 Carregando instância WhatsApp para usuário:', user.id)
         const instance = await WhatsAppInstanceService.getUserInstance(user.id)
         if (instance && instance.status === 'connected') {
+          console.log('✅ Instância conectada carregada:', instance.instance_name)
           setConnectedInstance(instance.instance_name)
           setWhatsappConfig({
             id: instance.id,
@@ -59,6 +61,8 @@ export default function DisparadorMassa() {
             created_at: instance.created_at,
             updated_at: instance.updated_at
           })
+        } else {
+          console.log('ℹ️ Nenhuma instância conectada encontrada para o usuário')
         }
       }
     } catch (error) {
@@ -249,7 +253,10 @@ export default function DisparadorMassa() {
             {/* Status da Configuração */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
               <div className="flex items-center space-x-3">
-                {connectedInstance || whatsappConfig ? (
+                {(() => {
+                  console.log('🔍 Verificando estado na interface:', { connectedInstance, whatsappConfig: !!whatsappConfig })
+                  return connectedInstance || whatsappConfig
+                })() ? (
                   <>
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <span className="text-green-600 font-medium">
