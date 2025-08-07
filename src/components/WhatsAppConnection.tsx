@@ -32,17 +32,21 @@ export default function WhatsAppConnection({
     const checkExistingInstance = async () => {
       if (userId) {
         try {
+          console.log('🔍 Verificando instância existente no banco...')
           const instance = await WhatsAppInstanceService.getUserInstance(userId)
           if (instance && instance.status === 'connected') {
+            console.log('✅ Instância conectada encontrada:', instance.instance_name)
             setInstanceName(instance.instance_name)
             setConnectionState({
               instanceName: instance.instance_name,
               state: 'open',
               message: 'WhatsApp já conectado!'
             })
+          } else {
+            console.log('ℹ️ Nenhuma instância conectada encontrada')
           }
         } catch (error) {
-          console.error('Erro ao verificar instância existente:', error)
+          console.error('❌ Erro ao verificar instância existente:', error)
         }
       }
     }
@@ -187,9 +191,11 @@ export default function WhatsAppConnection({
           // Persistir o status de conectado
           if (userId) {
             try {
+              console.log('💾 Salvando status conectado no banco...')
               await WhatsAppInstanceService.updateInstanceStatus(instanceName, 'connected')
+              console.log('✅ Status salvo com sucesso!')
             } catch (error) {
-              console.error('Erro ao persistir status:', error)
+              console.error('❌ Erro ao persistir status:', error)
             }
           }
           
@@ -207,9 +213,11 @@ export default function WhatsAppConnection({
           // Persistir o status de desconectado
           if (userId) {
             try {
+              console.log('💾 Salvando status desconectado no banco...')
               await WhatsAppInstanceService.updateInstanceStatus(instanceName, 'disconnected')
+              console.log('✅ Status salvo com sucesso!')
             } catch (error) {
-              console.error('Erro ao persistir status:', error)
+              console.error('❌ Erro ao persistir status:', error)
             }
           }
           
