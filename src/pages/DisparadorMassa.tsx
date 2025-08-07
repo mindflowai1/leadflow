@@ -113,10 +113,10 @@ export default function DisparadorMassa() {
       return
     }
 
-    if (!whatsappConfig) {
+    if (!whatsappConfig && !connectedInstance) {
       toast({
         title: 'Erro',
-        description: 'Configure sua conta WhatsApp antes de enviar',
+        description: 'Conecte sua conta WhatsApp antes de enviar',
         variant: 'destructive'
       })
       return
@@ -249,11 +249,11 @@ export default function DisparadorMassa() {
             {/* Status da Configuração */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
               <div className="flex items-center space-x-3">
-                {whatsappConfig ? (
+                {connectedInstance || whatsappConfig ? (
                   <>
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <span className="text-green-600 font-medium">
-                      WhatsApp conectado: {whatsappConfig.whatsapp_number}
+                      WhatsApp conectado: {whatsappConfig?.whatsapp_number || 'Via QR Code'}
                     </span>
                     {connectedInstance && (
                       <span className="text-xs text-gray-500">
@@ -387,7 +387,7 @@ export default function DisparadorMassa() {
                     <Button 
                       onClick={handleSendCampaign}
                       className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                      disabled={!campaignName || !message || selectedLists.length === 0 || !whatsappConfig}
+                      disabled={!campaignName || !message || selectedLists.length === 0 || (!whatsappConfig && !connectedInstance)}
                     >
                       <Send className="w-4 h-4 mr-2" />
                       Enviar Campanha
