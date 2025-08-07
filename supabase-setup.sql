@@ -64,6 +64,20 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
 );
 
 -- ==============================================
+-- TABELA: whatsapp_instances (para persistir conexões)
+-- ==============================================
+CREATE TABLE IF NOT EXISTS public.whatsapp_instances (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    instance_name VARCHAR(255) UNIQUE NOT NULL,
+    status VARCHAR(50) DEFAULT 'disconnected' CHECK (status IN ('disconnected', 'connecting', 'connected', 'qrcode')),
+    whatsapp_number VARCHAR(20),
+    last_connection_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- ==============================================
 -- ROW LEVEL SECURITY (RLS)
 -- ==============================================
 
@@ -72,6 +86,7 @@ ALTER TABLE public.lead_lists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.whatsapp_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_attempts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_preferences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.whatsapp_instances ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para lead_lists
 CREATE POLICY "Users can manage own lead_lists" ON public.lead_lists
@@ -87,6 +102,10 @@ CREATE POLICY "Users can manage own contact_attempts" ON public.contact_attempts
 
 -- Políticas para user_preferences
 CREATE POLICY "Users can manage own user_preferences" ON public.user_preferences
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Políticas para whatsapp_instances
+CREATE POLICY "Users can manage own whatsapp_instances" ON public.whatsapp_instances
     FOR ALL USING (auth.uid() = user_id);
 
 -- ==============================================
@@ -111,6 +130,11 @@ CREATE INDEX IF NOT EXISTS idx_contact_attempts_created_at ON public.contact_att
 -- Índices para user_preferences
 CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id ON public.user_preferences(user_id);
 
+-- Índices para whatsapp_instances
+CREATE INDEX IF NOT EXISTS idx_whatsapp_instances_user_id ON public.whatsapp_instances(user_id);
+CREATE INDEX IF NOT EXISTS idx_whatsapp_instances_instance_name ON public.whatsapp_instances(instance_name);
+CREATE INDEX IF NOT EXISTS idx_whatsapp_instances_status ON public.whatsapp_instances(status);
+
 -- ==============================================
 -- FUNÇÕES TRIGGER PARA UPDATED_AT AUTOMÁTICO
 -- ==============================================
@@ -129,6 +153,9 @@ CREATE TRIGGER update_lead_lists_updated_at BEFORE UPDATE ON public.lead_lists
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_user_preferences_updated_at BEFORE UPDATE ON public.user_preferences
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_whatsapp_instances_updated_at BEFORE UPDATE ON public.whatsapp_instances
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ==============================================

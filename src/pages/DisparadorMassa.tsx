@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { toast } from '../hooks/use-toast'
 import { getCurrentUser } from '../lib/supabaseClient'
 import { LeadService } from '../lib/leadService'
+import { WhatsAppInstanceService } from '../lib/whatsappInstanceService'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
@@ -41,7 +42,25 @@ export default function DisparadorMassa() {
     try {
       const userLists = await LeadService.getUserLeadLists()
       setLists(userLists)
-      // TODO: Carregar configuração do WhatsApp do usuário
+      
+      // Carregar instância WhatsApp do usuário
+      if (user) {
+        const instance = await WhatsAppInstanceService.getUserInstance(user.id)
+        if (instance && instance.status === 'connected') {
+          setConnectedInstance(instance.instance_name)
+          setWhatsappConfig({
+            id: instance.id,
+            user_id: instance.user_id,
+            api_url: 'https://leadflow-dtev.onrender.com',
+            api_key: '***',
+            instance_name: instance.instance_name,
+            whatsapp_number: instance.whatsapp_number || 'Conectado via QR Code',
+            status: 'active',
+            created_at: instance.created_at,
+            updated_at: instance.updated_at
+          })
+        }
+      }
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
       toast({
@@ -123,19 +142,26 @@ export default function DisparadorMassa() {
     })
   }
 
-  const handleConnectionSuccess = (instanceName: string) => {
+  const handleConnectionSuccess = async (instanceName: string) => {
     setConnectedInstance(instanceName)
-    setWhatsappConfig({
-      id: 'temp',
-      user_id: user.id,
-      api_url: 'https://SEU_DOMINIO_DA_EVOLUTION_API:8080',
-      api_key: '***',
-      instance_name: instanceName,
-      whatsapp_number: 'Conectado via QR Code',
-      status: 'active',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
+    
+    // Buscar dados atualizados da instância
+    if (user) {
+      const instance = await WhatsAppInstanceService.getUserInstance(user.id)
+      if (instance) {
+        setWhatsappConfig({
+          id: instance.id,
+          user_id: instance.user_id,
+          api_url: 'https://leadflow-dtev.onrender.com',
+          api_key: '***',
+          instance_name: instance.instance_name,
+          whatsapp_number: instance.whatsapp_number || 'Conectado via QR Code',
+          status: 'active',
+          created_at: instance.created_at,
+          updated_at: instance.updated_at
+        })
+      }
+    }
     
     // Mudar para a aba de campanha após conectar
     setActiveTab('campaign')

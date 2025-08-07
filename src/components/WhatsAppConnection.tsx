@@ -4,6 +4,7 @@ import { QrCode, Smartphone, CheckCircle, AlertTriangle, Loader2, RefreshCw, X }
 import { Button } from './ui/button'
 import { toast } from '../hooks/use-toast'
 import EvolutionApiService from '../lib/evolutionApiService'
+import { WhatsAppInstanceService } from '../lib/whatsappInstanceService'
 import type { ConnectionState } from '../lib/evolutionApiService'
 
 interface WhatsAppConnectionProps {
@@ -24,7 +25,32 @@ export default function WhatsAppConnection({
   const [instanceName, setInstanceName] = useState<string>('')
   const [connectionState, setConnectionState] = useState<ConnectionState | null>(null)
   const [isPolling, setIsPolling] = useState(false)
+  const [existingInstance, setExistingInstance] = useState<string | null>(null)
   const stopPollingRef = useRef<(() => void) | null>(null)
+
+  // Verificar se já existe uma instância conectada
+  useEffect(() => {
+    const checkExistingInstance = async () => {
+      if (userId) {
+        try {
+          const instance = await WhatsAppInstanceService.getUserInstance(userId)
+          if (instance && instance.status === 'connected') {
+            setExistingInstance(instance.instance_name)
+            setInstanceName(instance.instance_name)
+            setConnectionState({
+              instanceName: instance.instance_name,
+              state: 'open',
+              message: 'WhatsApp já conectado!'
+            })
+          }
+        } catch (error) {
+          console.error('Erro ao verificar instância existente:', error)
+        }
+      }
+    }
+
+    checkExistingInstance()
+  }, [userId])
 
   // Limpar polling quando componente for desmontado
   useEffect(() => {
@@ -50,7 +76,12 @@ export default function WhatsAppConnection({
 
       console.log('🔄 Iniciando conexão WhatsApp...')
 
-      // 1. Criar instância
+      // 1. Criar instância no banco de dados
+      if (userId) {
+        await WhatsAppInstanceService.createInstance(userId, newInstanceName)
+      }
+
+      // 2. Criar instância na Evolution API
       const instance = await EvolutionApiService.createInstanceAndQRCode(newInstanceName, userName)
       
       setConnectionState({
@@ -154,6 +185,13 @@ export default function WhatsAppConnection({
         // Se conectou com sucesso
         if (state.state === 'open') {
           setIsPolling(false)
+          setExistingInstance(instanceName)
+          
+          // Persistir o status de conectado
+          if (userId) {
+            await WhatsAppInstanceService.updateInstanceStatus(instanceName, 'connected')
+          }
+          
           toast({
             title: 'WhatsApp Conectado!',
             description: 'Sua conta WhatsApp foi conectada com sucesso.',
@@ -164,6 +202,13 @@ export default function WhatsAppConnection({
         // Se desconectou
         if (state.state === 'close' || state.state === 'disconnected') {
           setIsPolling(false)
+          setExistingInstance(null)
+          
+          // Persistir o status de desconectado
+          if (userId) {
+            await WhatsAppInstanceService.updateInstanceStatus(instanceName, 'disconnected')
+          }
+          
           toast({
             title: 'WhatsApp Desconectado',
             description: 'Sua conta WhatsApp foi desconectada.',
