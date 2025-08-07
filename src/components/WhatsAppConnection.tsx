@@ -25,7 +25,6 @@ export default function WhatsAppConnection({
   const [instanceName, setInstanceName] = useState<string>('')
   const [connectionState, setConnectionState] = useState<ConnectionState | null>(null)
   const [isPolling, setIsPolling] = useState(false)
-  const [existingInstance, setExistingInstance] = useState<string | null>(null)
   const stopPollingRef = useRef<(() => void) | null>(null)
 
   // Verificar se já existe uma instância conectada
@@ -35,7 +34,6 @@ export default function WhatsAppConnection({
         try {
           const instance = await WhatsAppInstanceService.getUserInstance(userId)
           if (instance && instance.status === 'connected') {
-            setExistingInstance(instance.instance_name)
             setInstanceName(instance.instance_name)
             setConnectionState({
               instanceName: instance.instance_name,
@@ -179,17 +177,20 @@ export default function WhatsAppConnection({
 
     stopPollingRef.current = EvolutionApiService.startConnectionPolling(
       instanceName,
-      (state: ConnectionState) => {
+      async (state: ConnectionState) => {
         setConnectionState(state)
         
         // Se conectou com sucesso
         if (state.state === 'open') {
           setIsPolling(false)
-          setExistingInstance(instanceName)
           
           // Persistir o status de conectado
           if (userId) {
-            await WhatsAppInstanceService.updateInstanceStatus(instanceName, 'connected')
+            try {
+              await WhatsAppInstanceService.updateInstanceStatus(instanceName, 'connected')
+            } catch (error) {
+              console.error('Erro ao persistir status:', error)
+            }
           }
           
           toast({
@@ -202,11 +203,14 @@ export default function WhatsAppConnection({
         // Se desconectou
         if (state.state === 'close' || state.state === 'disconnected') {
           setIsPolling(false)
-          setExistingInstance(null)
           
           // Persistir o status de desconectado
           if (userId) {
-            await WhatsAppInstanceService.updateInstanceStatus(instanceName, 'disconnected')
+            try {
+              await WhatsAppInstanceService.updateInstanceStatus(instanceName, 'disconnected')
+            } catch (error) {
+              console.error('Erro ao persistir status:', error)
+            }
           }
           
           toast({
