@@ -8,6 +8,7 @@ import { LeadService } from '../lib/leadService'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
+import WhatsAppConnection from '../components/WhatsAppConnection'
 import type { LeadList, EvolutionAPIConfig } from '../types'
 
 export default function DisparadorMassa() {
@@ -18,8 +19,9 @@ export default function DisparadorMassa() {
   const [selectedLists, setSelectedLists] = useState<string[]>([])
   const [message, setMessage] = useState('')
   const [campaignName, setCampaignName] = useState('')
-  const [whatsappConfig] = useState<EvolutionAPIConfig | null>(null)
+  const [whatsappConfig, setWhatsappConfig] = useState<EvolutionAPIConfig | null>(null)
   const [activeTab, setActiveTab] = useState<'campaign' | 'config'>('campaign')
+  const [connectedInstance, setConnectedInstance] = useState<string | null>(null)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -121,6 +123,30 @@ export default function DisparadorMassa() {
     })
   }
 
+  const handleConnectionSuccess = (instanceName: string) => {
+    setConnectedInstance(instanceName)
+    setWhatsappConfig({
+      id: 'temp',
+      user_id: user.id,
+      api_url: 'https://SEU_DOMINIO_DA_EVOLUTION_API:8080',
+      api_key: '***',
+      instance_name: instanceName,
+      whatsapp_number: 'Conectado via QR Code',
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    
+    // Mudar para a aba de campanha após conectar
+    setActiveTab('campaign')
+  }
+
+  const handleConnectionError = (error: string) => {
+    console.error('Erro na conexão WhatsApp:', error)
+    setConnectedInstance(null)
+    setWhatsappConfig(null)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -201,14 +227,19 @@ export default function DisparadorMassa() {
                   <>
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <span className="text-green-600 font-medium">
-                      WhatsApp configurado: {whatsappConfig.whatsapp_number}
+                      WhatsApp conectado: {whatsappConfig.whatsapp_number}
                     </span>
+                    {connectedInstance && (
+                      <span className="text-xs text-gray-500">
+                        (Instância: {connectedInstance})
+                      </span>
+                    )}
                   </>
                 ) : (
                   <>
                     <AlertTriangle className="w-5 h-5 text-orange-600" />
                     <span className="text-orange-600 font-medium">
-                      Configure sua conta WhatsApp para enviar campanhas
+                      Conecte sua conta WhatsApp para enviar campanhas
                     </span>
                     <Button 
                       variant="outline" 
@@ -216,7 +247,7 @@ export default function DisparadorMassa() {
                       onClick={() => setActiveTab('config')}
                       className="ml-auto"
                     >
-                      Configurar
+                      Conectar WhatsApp
                     </Button>
                   </>
                 )}
@@ -343,78 +374,106 @@ export default function DisparadorMassa() {
         )}
 
         {activeTab === 'config' && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <Settings className="w-5 h-5 mr-2 text-blue-600" />
-              Configuração Evolution API
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="apiUrl" className="text-gray-700 font-medium">URL da API</Label>
-                  <Input
-                    id="apiUrl"
-                    placeholder="https://api.evolutionapi.com"
-                    defaultValue={whatsappConfig?.api_url || ''}
-                    className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="apiKey" className="text-gray-700 font-medium">Chave da API</Label>
-                  <Input
-                    id="apiKey"
-                    type="password"
-                    placeholder="Sua chave da Evolution API"
-                    defaultValue={whatsappConfig?.api_key || ''}
-                    className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="instanceName" className="text-gray-700 font-medium">Nome da Instância</Label>
-                  <Input
-                    id="instanceName"
-                    placeholder="minha-instancia"
-                    defaultValue={whatsappConfig?.instance_name || ''}
-                    className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
+          <div className="space-y-6">
+            {/* Status da Conexão Atual */}
+            {connectedInstance && (
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                  <div>
+                    <h3 className="font-medium text-green-800">
+                      WhatsApp Conectado
+                    </h3>
+                    <p className="text-sm text-green-700">
+                      Instância: {connectedInstance}
+                    </p>
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="whatsappNumber" className="text-gray-700 font-medium">Número do WhatsApp</Label>
-                  <Input
-                    id="whatsappNumber"
-                    placeholder="5531999887766"
-                    defaultValue={whatsappConfig?.whatsapp_number || ''}
-                    className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Digite apenas números (DDI + DDD + Número)
-                  </p>
+            {/* Componente de Conexão WhatsApp */}
+            <WhatsAppConnection
+              userId={user?.id}
+              userName={user?.user_metadata?.full_name || user?.email?.split('@')[0]}
+              onConnectionSuccess={handleConnectionSuccess}
+              onConnectionError={handleConnectionError}
+            />
+
+            {/* Configuração Manual (Opcional) */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <Settings className="w-5 h-5 mr-2 text-blue-600" />
+                Configuração Manual (Opcional)
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="apiUrl" className="text-gray-700 font-medium">URL da API</Label>
+                    <Input
+                      id="apiUrl"
+                      placeholder="https://api.evolutionapi.com"
+                      defaultValue={whatsappConfig?.api_url || ''}
+                      className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="apiKey" className="text-gray-700 font-medium">Chave da API</Label>
+                    <Input
+                      id="apiKey"
+                      type="password"
+                      placeholder="Sua chave da Evolution API"
+                      defaultValue={whatsappConfig?.api_key || ''}
+                      className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="instanceName" className="text-gray-700 font-medium">Nome da Instância</Label>
+                    <Input
+                      id="instanceName"
+                      placeholder="minha-instancia"
+                      defaultValue={whatsappConfig?.instance_name || ''}
+                      className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
 
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <h3 className="font-medium text-yellow-800 mb-2">
-                    Como configurar:
-                  </h3>
-                  <ul className="text-sm text-yellow-700 space-y-1">
-                    <li>1. Tenha uma instância ativa da Evolution API</li>
-                    <li>2. Obtenha a URL e chave da API</li>
-                    <li>3. Configure uma instância no painel</li>
-                    <li>4. Conecte seu WhatsApp via QR Code</li>
-                  </ul>
-                </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="whatsappNumber" className="text-gray-700 font-medium">Número do WhatsApp</Label>
+                    <Input
+                      id="whatsappNumber"
+                      placeholder="5531999887766"
+                      defaultValue={whatsappConfig?.whatsapp_number || ''}
+                      className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Digite apenas números (DDI + DDD + Número)
+                    </p>
+                  </div>
 
-                <Button 
-                  onClick={handleSaveWhatsAppConfig} 
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                >
-                  Salvar Configuração
-                </Button>
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h3 className="font-medium text-yellow-800 mb-2">
+                      Como configurar manualmente:
+                    </h3>
+                    <ul className="text-sm text-yellow-700 space-y-1">
+                      <li>1. Tenha uma instância ativa da Evolution API</li>
+                      <li>2. Obtenha a URL e chave da API</li>
+                      <li>3. Configure uma instância no painel</li>
+                      <li>4. Conecte seu WhatsApp via QR Code</li>
+                    </ul>
+                  </div>
+
+                  <Button 
+                    onClick={handleSaveWhatsAppConfig} 
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    Salvar Configuração Manual
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

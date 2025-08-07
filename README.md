@@ -66,6 +66,7 @@
 ### **Backend & Infraestrutura**
 - **Supabase** - Backend as a Service
 - **PostgreSQL** - Banco de dados
+- **Node.js/Express** - Backend Evolution API
 - **N8N** - Automação de workflows
 - **Evolution API** - Integração WhatsApp
 
@@ -168,7 +169,7 @@ leadflow/
 ├── public/                 # Arquivos estáticos
 │   ├── lflogo1.png        # Logo principal
 │   └── faviconlf.png      # Favicon
-├── src/
+├── src/                   # Frontend React
 │   ├── components/        # Componentes React
 │   │   ├── ui/           # Componentes base (Shadcn/ui)
 │   │   ├── magicui/      # Componentes Magic UI
@@ -182,12 +183,19 @@ leadflow/
 │   │   └── LoginPage.tsx
 │   ├── lib/              # Utilitários e configurações
 │   │   ├── supabaseClient.ts
-│   │   └── leadService.ts
+│   │   ├── leadService.ts
+│   │   └── evolutionApiService.ts
 │   ├── types/            # Definições TypeScript
 │   │   └── index.ts
 │   ├── hooks/            # Custom hooks
 │   └── App.tsx           # Componente principal
-├── package.json
+├── backend/              # Backend Node.js/Express
+│   ├── server.js         # Servidor principal
+│   ├── package.json      # Dependências do backend
+│   ├── config.env        # Configurações (não commitado)
+│   ├── test-connection.js # Teste de conexão
+│   └── README.md         # Documentação do backend
+├── package.json          # Frontend dependencies
 ├── vite.config.ts
 ├── tailwind.config.js
 └── README.md
@@ -227,17 +235,31 @@ CREATE POLICY "Users can delete own lists" ON lead_lists
 
 ## 📦 Deploy
 
-### **Vercel (Recomendado)**
+### **Frontend (Vercel - Recomendado)**
 
 1. **Conecte seu repositório** ao Vercel
 2. **Configure as variáveis de ambiente**
 3. **Deploy automático** a cada push
 
-### **Netlify**
+### **Backend (Railway - Recomendado)**
 
-1. **Conecte o repositório** ao Netlify
-2. **Configure o build command**: `npm run build`
-3. **Configure o publish directory**: `dist`
+1. **Acesse** [railway.app](https://railway.app)
+2. **Conecte GitHub** e selecione este repositório
+3. **Configure as variáveis de ambiente**:
+   ```env
+   EVOLUTION_API_URL=https://sua-evolution-api.com
+   EVOLUTION_API_KEY=sua-api-key
+   PORT=3001
+   NODE_ENV=production
+   CORS_ORIGIN=https://seu-frontend.vercel.app
+   ```
+4. **Deploy automático** acontece!
+
+### **Alternativas para Backend**
+
+- **Render**: [render.com](https://render.com) - Gratuito
+- **Vercel**: Serverless functions
+- **Heroku**: Deploy via Git
 
 ### **GitHub Pages**
 
