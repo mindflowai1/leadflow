@@ -32,7 +32,7 @@ app.use(cors({
 // Evolution API Configuration
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL;
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY;
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL; // opcional: webhook do fluxo N8N
+const N8N_WEBHOOK_URL = (process.env.N8N_WEBHOOK_URL || '').trim(); // opcional: webhook do fluxo N8N
 
 // Headers padrão para todas as requisições à Evolution API
 const evolutionHeaders = {
@@ -417,6 +417,7 @@ app.listen(PORT, () => {
   console.log(`📱 URL da Evolution API: ${EVOLUTION_API_URL}`);
   console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN}`);
   console.log(`🔧 Ambiente: ${process.env.NODE_ENV}`);
+  console.log(`🔗 N8N Webhook URL configurada: ${N8N_WEBHOOK_URL ? '✅' : '❌'}`);
 });
 
 module.exports = app; 
