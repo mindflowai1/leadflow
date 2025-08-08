@@ -32,6 +32,7 @@ app.use(cors({
 // Evolution API Configuration
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL;
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY;
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL; // opcional: webhook do fluxo N8N
 
 // Headers padrão para todas as requisições à Evolution API
 const evolutionHeaders = {
@@ -43,6 +44,42 @@ const evolutionHeaders = {
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
+});
+
+/**
+ * POST /api/dispatch-campaign
+ * Recebe a campanha do frontend e repassa para o webhook do N8N
+ * Body esperado: Array de objetos no formato solicitado
+ */
+app.post('/api/dispatch-campaign', async (req, res) => {
+  try {
+    if (!N8N_WEBHOOK_URL) {
+      return res.status(400).json({ success: false, error: 'N8N_WEBHOOK_URL não configurada no servidor' });
+    }
+
+    const payload = req.body;
+
+    if (!Array.isArray(payload) || payload.length === 0) {
+      return res.status(400).json({ success: false, error: 'Payload inválido. Deve ser um array não-vazio.' });
+    }
+
+    console.log('📤 Enviando campanha para N8N:', JSON.stringify(payload).slice(0, 1000));
+
+    const response = await axios.post(N8N_WEBHOOK_URL, payload, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 120000
+    });
+
+    console.log('✅ N8N respondeu com sucesso:', {
+      status: response.status,
+      statusText: response.statusText
+    });
+
+    return res.json({ success: true, data: response.data });
+  } catch (error) {
+    console.error('❌ Erro ao enviar campanha para N8N:', error.response?.data || error.message);
+    return res.status(500).json({ success: false, error: 'Falha ao enviar campanha para N8N', details: error.response?.data || error.message });
+  }
 });
 
 /**

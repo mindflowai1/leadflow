@@ -23,6 +23,29 @@ export interface ConnectionState {
 
 export class EvolutionApiService {
   /**
+   * Dispara campanha para o backend encaminhar ao N8N
+   */
+  static async dispatchCampaignToWebhook(payload: any[]): Promise<{ success: boolean; data?: any; error?: string }>{
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/dispatch-campaign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Erro HTTP ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error: any) {
+      console.error('❌ Erro ao enviar campanha ao backend:', error)
+      return { success: false, error: error.message || 'Erro desconhecido' }
+    }
+  }
+  /**
    * Cria uma nova instância e retorna o QR Code
    * @param instanceName Nome único para a instância
    * @param userName Nome do usuário (opcional)

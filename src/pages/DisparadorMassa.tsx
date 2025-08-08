@@ -10,6 +10,7 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
 import WhatsAppConnection from '../components/WhatsAppConnection'
+import { EvolutionApiService } from '../lib/evolutionApiService'
 import type { LeadList, EvolutionAPIConfig } from '../types'
 
 export default function DisparadorMassa() {
@@ -133,10 +134,37 @@ export default function DisparadorMassa() {
       return
     }
 
-    // TODO: Implementar o envio da campanha
+    // Montar payload para webhook
+    const instanceName = connectedInstance || whatsappConfig?.instance_name
+    const selectedItems = lists
+      .filter(list => selectedLists.includes(list.id))
+      .flatMap(list => (list.leads || []).map(lead => ({
+        nome: lead.name || 'Sem nome',
+        telefone: (lead.phone || '').replace(/\D/g, ''),
+        cidade: lead.address || ''
+      })))
+
+    const payload = [{
+      instance_name: instanceName || 'sem_instancia',
+      mensagem: message,
+      itens: selectedItems
+    }]
+
+    console.log('📦 Payload N8N:', payload)
+
+    const result = await EvolutionApiService.dispatchCampaignToWebhook(payload)
+    if (!result.success) {
+      toast({
+        title: 'Erro ao enviar campanha',
+        description: result.error || 'Falha desconhecida ao enviar a campanha para processamento',
+        variant: 'destructive'
+      })
+      return
+    }
+
     toast({
-      title: 'Campanha Criada!',
-      description: `Campanha "${campaignName}" foi criada e será processada em breve.`,
+      title: 'Campanha enviada!',
+      description: `Campanha "${campaignName}" enviada para processamento.`,
     })
 
     // Reset form
