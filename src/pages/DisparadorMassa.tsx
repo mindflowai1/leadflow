@@ -136,6 +136,8 @@ export default function DisparadorMassa() {
 
     // Montar payload para webhook
     const instanceName = connectedInstance || whatsappConfig?.instance_name
+    // Normalizar placeholder para {nome}
+    const normalizedMessage = message.replace(/\{\{\s*nome\s*\}\}/gi, '{nome}')
     const selectedItems = lists
       .filter(list => selectedLists.includes(list.id))
       .flatMap(list => (list.leads || []).map(lead => ({
@@ -146,7 +148,7 @@ export default function DisparadorMassa() {
 
     const payload = [{
       instance_name: instanceName || 'sem_instancia',
-      mensagem: message,
+      mensagem: normalizedMessage,
       itens: selectedItems
     }]
 
