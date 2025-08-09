@@ -13,16 +13,22 @@ app.use(express.json());
 // Configuração CORS dinâmica
 const corsOrigins = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ['https://leadflow-indol.vercel.app'];
+  : ['https://leadflow-indol.vercel.app', 'http://localhost:5173'];
+
+console.log('🔧 CORS Origins configuradas:', corsOrigins);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Permitir requisições sem origin (como mobile apps)
+    console.log('🌐 Origin da requisição:', origin);
+    
+    // Permitir requisições sem origin (como mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
     if (corsOrigins.indexOf(origin) !== -1) {
+      console.log('✅ Origin permitida:', origin);
       callback(null, true);
     } else {
+      console.log('❌ Origin bloqueada:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
