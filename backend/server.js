@@ -32,7 +32,14 @@ app.use(cors({
 // Evolution API Configuration
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL;
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY;
-const N8N_WEBHOOK_URL = (process.env.N8N_WEBHOOK_URL || '').trim(); // opcional: webhook do fluxo N8N
+function sanitizeWebhookUrl(raw) {
+  if (!raw) return '';
+  // remove aspas iniciais/finais e espaços
+  const cleaned = String(raw).trim().replace(/^['"]+|['"]+$/g, '');
+  return cleaned;
+}
+
+const N8N_WEBHOOK_URL = sanitizeWebhookUrl(process.env.N8N_WEBHOOK_URL); // opcional: webhook do fluxo N8N
 
 // Headers padrão para todas as requisições à Evolution API
 const evolutionHeaders = {
@@ -61,6 +68,11 @@ app.post('/api/dispatch-campaign', async (req, res) => {
 
     if (!Array.isArray(payload) || payload.length === 0) {
       return res.status(400).json({ success: false, error: 'Payload inválido. Deve ser um array não-vazio.' });
+    }
+
+    // Valida URL
+    try { new URL(N8N_WEBHOOK_URL) } catch {
+      return res.status(400).json({ success: false, error: 'N8N_WEBHOOK_URL inválida', details: N8N_WEBHOOK_URL });
     }
 
     console.log('📤 Enviando campanha para N8N:', JSON.stringify(payload).slice(0, 1000));

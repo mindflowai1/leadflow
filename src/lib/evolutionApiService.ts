@@ -39,6 +39,7 @@ export class EvolutionApiService {
       }
 
       const data = await response.json()
+      console.log('✅ Resposta do backend:', data)
       return data
     } catch (error: any) {
       console.error('❌ Erro ao enviar campanha ao backend:', error)
