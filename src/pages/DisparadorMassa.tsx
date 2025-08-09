@@ -141,8 +141,12 @@ export default function DisparadorMassa() {
     const selectedItems = lists
       .filter(list => selectedLists.includes(list.id))
       .flatMap(list => (list.leads || []).map(lead => ({
-        nome: lead.name || 'Sem nome',
-        telefone: (lead.phone || '').replace(/\D/g, ''),
+        nome: (lead.name || 'Sem nome').normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
+        telefone: (() => {
+          const phone = (lead.phone || '').replace(/\D/g, '');
+          // Se não começar com 55, adicionar o código do país
+          return phone.startsWith('55') ? phone : `55${phone}`;
+        })(),
         cidade: lead.address || ''
       })))
 
