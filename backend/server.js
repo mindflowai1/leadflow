@@ -66,22 +66,32 @@ app.use((req, res, next) => {
  */
 app.post('/api/dispatch-campaign', async (req, res) => {
   try {
+    console.log('🔄 Recebendo requisição dispatch-campaign...');
+    console.log('📍 N8N_WEBHOOK_URL configurada:', N8N_WEBHOOK_URL);
+    
     if (!N8N_WEBHOOK_URL) {
+      console.log('❌ N8N_WEBHOOK_URL não configurada');
       return res.status(400).json({ success: false, error: 'N8N_WEBHOOK_URL não configurada no servidor' });
     }
 
     const payload = req.body;
+    console.log('📦 Payload recebido:', JSON.stringify(payload, null, 2));
 
     if (!Array.isArray(payload) || payload.length === 0) {
+      console.log('❌ Payload inválido:', payload);
       return res.status(400).json({ success: false, error: 'Payload inválido. Deve ser um array não-vazio.' });
     }
 
     // Valida URL
-    try { new URL(N8N_WEBHOOK_URL) } catch {
+    try { 
+      new URL(N8N_WEBHOOK_URL);
+      console.log('✅ URL válida:', N8N_WEBHOOK_URL);
+    } catch (urlError) {
+      console.log('❌ URL inválida:', N8N_WEBHOOK_URL, urlError.message);
       return res.status(400).json({ success: false, error: 'N8N_WEBHOOK_URL inválida', details: N8N_WEBHOOK_URL });
     }
 
-    console.log('📤 Enviando campanha para N8N:', JSON.stringify(payload).slice(0, 1000));
+    console.log('📤 Enviando para N8N...', JSON.stringify(payload).slice(0, 500));
 
     const response = await axios.post(N8N_WEBHOOK_URL, payload, {
       headers: { 'Content-Type': 'application/json' },
@@ -90,13 +100,24 @@ app.post('/api/dispatch-campaign', async (req, res) => {
 
     console.log('✅ N8N respondeu com sucesso:', {
       status: response.status,
-      statusText: response.statusText
+      statusText: response.statusText,
+      data: response.data
     });
 
     return res.json({ success: true, data: response.data });
   } catch (error) {
-    console.error('❌ Erro ao enviar campanha para N8N:', error.response?.data || error.message);
-    return res.status(500).json({ success: false, error: 'Falha ao enviar campanha para N8N', details: error.response?.data || error.message });
+    console.error('❌ Erro completo:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      stack: error.stack
+    });
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Falha ao enviar campanha para N8N', 
+      details: error.response?.data || error.message,
+      status: error.response?.status 
+    });
   }
 });
 
