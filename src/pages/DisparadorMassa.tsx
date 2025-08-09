@@ -136,8 +136,8 @@ export default function DisparadorMassa() {
 
     // Montar payload para webhook
     const instanceName = connectedInstance || whatsappConfig?.instance_name
-    // Normalizar placeholder para {nome}
-    const normalizedMessage = message.replace(/\{\{\s*nome\s*\}\}/gi, '{nome}')
+    // Mensagem já usa o formato {nome}
+    const normalizedMessage = message
     const selectedItems = lists
       .filter(list => selectedLists.includes(list.id))
       .flatMap(list => (list.leads || []).map(lead => ({
@@ -418,12 +418,12 @@ export default function DisparadorMassa() {
                       id="message"
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none mt-1"
                       rows={6}
-                      placeholder="Digite sua mensagem aqui..."
+                      placeholder="Ex: Olá {nome}, temos uma proposta especial para você!"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      {message.length}/1000 caracteres
+                      {message.length}/1000 caracteres • Use {"{nome}"} para personalizar com o nome do lead
                     </p>
                   </div>
 
