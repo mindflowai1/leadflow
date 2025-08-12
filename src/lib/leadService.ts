@@ -44,6 +44,14 @@ export class LeadService {
       // Log para debug - ajuda a entender o formato da resposta
       console.log('🔍 Resposta completa do N8N:', data)
       console.log('🔍 Tipo da resposta:', typeof data)
+      console.log('🔍 Status da resposta:', response.status)
+      console.log('🔍 Headers da resposta:', response.headers)
+      
+      // Verificar se a resposta está vazia ou é uma string vazia
+      if (!data || data === "" || data === null) {
+        console.error('❌ Resposta vazia do N8N')
+        throw new Error('N8N retornou resposta vazia. Verifique se o webhook está configurado corretamente.')
+      }
       
       // Parser flexível - tenta extrair leads de diferentes estruturas
       let leads: any[] = []
@@ -137,7 +145,9 @@ export class LeadService {
           error.message.includes('CORS') || 
           error.code === 'ERR_CORS' ||
           error.code === 'ECONNABORTED' ||
-          error.response?.status === 404) {
+          error.response?.status === 404 ||
+          error.message.includes('resposta vazia') ||
+          error.message.includes('N8N não está respondendo')) {
         
         console.log('🎭 N8N indisponível, usando dados de demonstração')
         
@@ -161,6 +171,10 @@ export class LeadService {
         errorMessage = 'Erro no servidor de extração. Tente novamente em alguns minutos.'
       } else if (error.message.includes('URL do Google Maps inválida')) {
         errorMessage = 'URL inválida. Cole uma URL de busca ou lugar do Google Maps (ex: https://www.google.com/maps/search/restaurantes+sp)'
+      } else if (error.message.includes('resposta vazia')) {
+        errorMessage = 'N8N não está respondendo corretamente. Verifique se o webhook está ativo e configurado.'
+      } else if (error.message.includes('Nenhum lead encontrado')) {
+        errorMessage = 'N8N não retornou dados válidos. Verifique se o workflow está funcionando corretamente.'
       } else if (error.message) {
         errorMessage = error.message
       }

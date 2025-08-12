@@ -55,6 +55,11 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
   const [newListName, setNewListName] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   
+  // Estados para verificação de duplicatas
+  const [duplicateLeads, setDuplicateLeads] = useState<Lead[]>([])
+  const [newLeads, setNewLeads] = useState<Lead[]>([])
+  const [showDuplicateInfo, setShowDuplicateInfo] = useState(false)
+  
   // Filtros
   const [searchTerm, setSearchTerm] = useState("")
   const [cityFilter, setCityFilter] = useState("")
@@ -149,6 +154,9 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
 
       setGeneratedLeads(leadsWithSelection)
       
+      // Mostrar opções de salvar automaticamente
+      setShowSaveOptions(true)
+      
       toast({
         title: "Leads Extraídos com Sucesso!",
         description: `${result.leads.length} leads encontrados. Selecione os que deseja salvar.`,
@@ -176,6 +184,23 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
         i === leadIndex ? { ...lead, selected: !lead.selected } : lead
       )
     )
+    
+    // Verificar duplicatas após mudança na seleção
+    setTimeout(() => {
+      if (saveMode === 'existing' && selectedListId) {
+        const selectedLeads = getSelectedLeads()
+        if (selectedLeads.length > 0) {
+          const { newLeads: newLeadsToAdd, duplicateLeads: duplicates } = checkDuplicateLeads(selectedLeads, selectedListId)
+          setNewLeads(newLeadsToAdd)
+          setDuplicateLeads(duplicates)
+          setShowDuplicateInfo(true)
+        } else {
+          setShowDuplicateInfo(false)
+          setNewLeads([])
+          setDuplicateLeads([])
+        }
+      }
+    }, 100)
   }
 
   const toggleLeadSelectionByFilteredIndex = (filteredIndex: number) => {
@@ -190,9 +215,63 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
     setGeneratedLeads(prev => 
       prev.map(lead => ({ ...lead, selected: !allSelected }))
     )
+    
+    // Verificar duplicatas após mudança na seleção
+    setTimeout(() => {
+      if (saveMode === 'existing' && selectedListId) {
+        const selectedLeads = getSelectedLeads()
+        if (selectedLeads.length > 0) {
+          const { newLeads: newLeadsToAdd, duplicateLeads: duplicates } = checkDuplicateLeads(selectedLeads, selectedListId)
+          setNewLeads(newLeadsToAdd)
+          setDuplicateLeads(duplicates)
+          setShowDuplicateInfo(true)
+        } else {
+          setShowDuplicateInfo(false)
+          setNewLeads([])
+          setDuplicateLeads([])
+        }
+      }
+    }, 100)
   }
 
   const getSelectedLeads = () => generatedLeads.filter(lead => lead.selected)
+
+  // Verificar leads duplicados
+  const checkDuplicateLeads = (selectedLeads: Lead[], targetListId?: string): { newLeads: Lead[], duplicateLeads: Lead[] } => {
+    if (saveMode === 'new') {
+      // Para nova lista, não há duplicatas
+      return { newLeads: selectedLeads, duplicateLeads: [] }
+    }
+
+    // Buscar leads existentes na lista selecionada
+    const targetList = existingLists.find(list => list.id === targetListId)
+    if (!targetList || !targetList.leads) {
+      return { newLeads: selectedLeads, duplicateLeads: [] }
+    }
+
+    // Criar Set com telefones existentes (normalizados)
+    const existingPhones = new Set(
+      targetList.leads.map(lead => lead.phone?.replace(/\D/g, '')).filter(Boolean)
+    )
+
+    const newLeads: Lead[] = []
+    const duplicateLeads: Lead[] = []
+
+    selectedLeads.forEach(lead => {
+      const normalizedPhone = lead.phone?.replace(/\D/g, '')
+      
+      if (normalizedPhone && existingPhones.has(normalizedPhone)) {
+        duplicateLeads.push(lead)
+      } else {
+        newLeads.push(lead)
+        if (normalizedPhone) {
+          existingPhones.add(normalizedPhone)
+        }
+      }
+    })
+
+    return { newLeads, duplicateLeads }
+  }
 
   const handleSaveLeads = async () => {
     const selectedLeads = getSelectedLeads()
@@ -224,24 +303,55 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
       return
     }
 
+    // Verificar duplicatas antes de salvar
+    const { newLeads: leadsToSave, duplicateLeads: duplicates } = checkDuplicateLeads(selectedLeads, selectedListId)
+    
+    setNewLeads(leadsToSave)
+    setDuplicateLeads(duplicates)
+    setShowDuplicateInfo(true)
+
+    // Se há duplicatas, mostrar informação e perguntar se quer continuar
+    if (duplicates.length > 0) {
+      const shouldContinue = window.confirm(
+        `${leadsToSave.length} leads novos serão adicionados.\n${duplicates.length} leads duplicados serão ignorados.\n\nDeseja continuar?`
+      )
+      
+      if (!shouldContinue) {
+        setShowDuplicateInfo(false)
+        return
+      }
+    }
+
     setIsSaving(true)
 
     try {
       if (saveMode === 'new') {
         await LeadService.saveLeadList(newListName, selectedLeads)
       } else {
-        await LeadService.addLeadsToList(selectedListId, selectedLeads)
+        // Salvar apenas os leads não duplicados
+        await LeadService.addLeadsToList(selectedListId, leadsToSave)
       }
 
-      toast({
-        title: "Leads Salvos com Sucesso!",
-        description: `${selectedLeads.length} leads foram salvos na lista.`,
-      })
+      // Mostrar feedback baseado no resultado
+      if (duplicates.length > 0) {
+        toast({
+          title: "Leads Salvos com Sucesso!",
+          description: `${leadsToSave.length} leads novos adicionados. ${duplicates.length} leads duplicados ignorados.`,
+        })
+      } else {
+        toast({
+          title: "Leads Salvos com Sucesso!",
+          description: `${selectedLeads.length} leads foram salvos na lista.`,
+        })
+      }
       
       setShowSaveOptions(false)
+      setShowDuplicateInfo(false)
       setGeneratedLeads([])
       setNewListName("")
       setSelectedListId("")
+      setNewLeads([])
+      setDuplicateLeads([])
     } catch (error) {
       console.error('❌ Erro ao salvar leads:', error)
       toast({
@@ -256,6 +366,25 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
 
   const onUrlSubmit = (values: z.infer<typeof urlFormSchema>) => {
     handleLeadGeneration(values.searchUrl, parseInt(quantity))
+  }
+
+  // Verificar duplicatas quando lista existente é selecionada
+  const handleListSelection = (listId: string) => {
+    setSelectedListId(listId)
+    
+    if (listId && generatedLeads.length > 0) {
+      const selectedLeads = getSelectedLeads()
+      if (selectedLeads.length > 0) {
+        const { newLeads: newLeadsToAdd, duplicateLeads: duplicates } = checkDuplicateLeads(selectedLeads, listId)
+        setNewLeads(newLeadsToAdd)
+        setDuplicateLeads(duplicates)
+        setShowDuplicateInfo(true)
+      }
+    } else {
+      setShowDuplicateInfo(false)
+      setNewLeads([])
+      setDuplicateLeads([])
+    }
   }
 
   const renderStars = (rating?: number) => {
@@ -393,8 +522,13 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                       <MapPin className="w-5 h-5" />
                       <span>Leads Encontrados ({filteredLeads.length})</span>
                     </CardTitle>
-                    <CardDescription>
-                      Selecione os leads que deseja salvar
+                    <CardDescription className="flex items-center space-x-2">
+                      <span>Selecione os leads que deseja salvar</span>
+                      {!showSaveOptions && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          💾 Opções de salvar disponíveis
+                        </span>
+                      )}
                     </CardDescription>
                   </div>
                   <div className="flex space-x-2">
@@ -407,13 +541,12 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                       {generatedLeads.every(lead => lead.selected) ? 'Desmarcar Todos' : 'Selecionar Todos'}
                     </Button>
                     <Button
-                      onClick={() => setShowSaveOptions(true)}
-                      disabled={getSelectedLeads().length === 0}
+                      onClick={() => setShowSaveOptions(!showSaveOptions)}
                       size="sm"
-                      className="bg-green-600 hover:bg-green-700"
+                      className={showSaveOptions ? "bg-gray-600 hover:bg-gray-700" : "bg-green-600 hover:bg-green-700"}
                     >
                       <Save className="w-4 h-4 mr-1" />
-                      Salvar Selecionados ({getSelectedLeads().length})
+                      {showSaveOptions ? 'Ocultar Opções' : 'Salvar Leads'}
                     </Button>
                   </div>
                 </div>
@@ -615,7 +748,7 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
 
       {/* Opções de Salvamento */}
       <AnimatePresence>
-        {showSaveOptions && (
+        {generatedLeads.length > 0 && showSaveOptions && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -637,7 +770,12 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                         type="radio"
                         name="saveMode"
                         checked={saveMode === 'new'}
-                        onChange={() => setSaveMode('new')}
+                        onChange={() => {
+                          setSaveMode('new')
+                          setShowDuplicateInfo(false)
+                          setNewLeads([])
+                          setDuplicateLeads([])
+                        }}
                       />
                       <span>Criar nova lista</span>
                     </label>
@@ -646,7 +784,12 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                         type="radio"
                         name="saveMode"
                         checked={saveMode === 'existing'}
-                        onChange={() => setSaveMode('existing')}
+                        onChange={() => {
+                          setSaveMode('existing')
+                          setShowDuplicateInfo(false)
+                          setNewLeads([])
+                          setDuplicateLeads([])
+                        }}
                         disabled={existingLists.length === 0}
                       />
                       <span>Adicionar à lista existente</span>
@@ -662,18 +805,63 @@ export function LeadGeneratorPro({ onLeadsGenerated, existingLists = [] }: LeadG
                   )}
 
                   {saveMode === 'existing' && (
-                    <Select value={selectedListId} onValueChange={setSelectedListId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma lista..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                        {existingLists.map((list) => (
-                          <SelectItem key={list.id} value={list.id}>
-                            {list.name} ({list.total_leads} leads)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-3">
+                      <Select value={selectedListId} onValueChange={handleListSelection}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma lista..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                          {existingLists.map((list) => (
+                            <SelectItem key={list.id} value={list.id}>
+                              {list.name} ({list.total_leads} leads)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Feedback de Duplicatas */}
+                      {showDuplicateInfo && selectedListId && (
+                        <div className="space-y-2">
+                          {newLeads.length > 0 && (
+                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-green-800 text-sm font-medium">
+                                  ✅ {newLeads.length} leads novos serão adicionados
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {duplicateLeads.length > 0 && (
+                            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                <span className="text-yellow-800 text-sm font-medium">
+                                  ⚠️ {duplicateLeads.length} leads duplicados serão ignorados
+                                </span>
+                              </div>
+                              <div className="mt-2 text-xs text-yellow-700">
+                                <p>Leads duplicados encontrados:</p>
+                                <div className="mt-1 space-y-1">
+                                  {duplicateLeads.slice(0, 3).map((lead, index) => (
+                                    <div key={index} className="flex items-center space-x-2">
+                                      <span>• {lead.name}</span>
+                                      {lead.phone && <span className="text-yellow-600">({lead.phone})</span>}
+                                    </div>
+                                  ))}
+                                  {duplicateLeads.length > 3 && (
+                                    <span className="text-yellow-600">
+                                      ... e mais {duplicateLeads.length - 3} leads
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 
