@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Send, MessageSquare, Settings, Users, CheckCircle, AlertTriangle, Loader, ArrowLeft, Plus, FolderOpen, Trash2 } from 'lucide-react'
+import { Send, MessageSquare, Settings, Users, CheckCircle, AlertTriangle, Loader, ArrowLeft, Plus, FolderOpen } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from '../hooks/use-toast'
 import { getCurrentUser } from '../lib/supabaseClient'
