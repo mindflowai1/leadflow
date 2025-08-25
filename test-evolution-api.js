@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 
 // Configuração do Evolution API
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://sua-evolution-api.com:8080';
